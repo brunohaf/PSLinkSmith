@@ -7,12 +7,15 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.IO
 
-$adminCheck = [System.Security.Principal.WindowsPrincipal] [System.Security.Principal.WindowsIdentity]::GetCurrent()
-if (-not $adminCheck.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "This script requires administrator privileges. Trying to run as an administrator." -ForegroundColor Blue
-    . Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" @Arguments" -Verb RunAs  *>&1 | Write-Host -ForegroundColor Blue
-    exit
-}
+# $adminCheck = [System.Security.Principal.WindowsPrincipal] [System.Security.Principal.WindowsIdentity]::GetCurrent()
+# if (-not $adminCheck.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
+#     $result = [System.Windows.Forms.MessageBox]::Show("This script requires administrator privileges. Do you want to run it as an administrator?", "Confirmation", "YesNo", "Question")
+#     if ($result -eq "No") {
+#         exit
+#     }
+#     Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs  *>&1 | Write-Host -ForegroundColor Blue
+#     exit
+# }
 
 # Helper function to get checked nodes' paths
 function Get-Nodes {
@@ -44,7 +47,7 @@ function Format-NodePathTag {
     param (
         [string]$Tag
     )
-    return($Tag -replace [regex]::Escape($SourcePath), "").TrimStart("\")
+    return($Tag -replace [regex]::Escape($BaseAssetsPath), "").TrimStart("\")
 }
 
 function Get-NodePaths {
@@ -112,11 +115,11 @@ function Add-Token {
 
     try {
         [System.Windows.Forms.Control]$ParentControl = $TokenizedFiltersFlowPanel
-        $tokenPanel = [TokenFilterElementPanel]::new($Node)
+        $tokenPanel = [TokenFilterElement]::new($Node)
         $ParentControl.Controls.Add($tokenPanel)
     }
     catch {
-        Write-Host "Error adding token: $($_.Exception.Message) | $($_.Exception.StackTrace) | $($_.ScriptStackTrace)"
+        Write-Host "Error adding token: $_"
         return
     }
 }
@@ -147,7 +150,7 @@ $Form_Load = {
         }
     }
 
-    Initialize-TreeView -basePath $SourcePath | Out-Null
+    Initialize-TreeView -basePath $BaseAssetsPath | Out-Null
 }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target = "AssetsTreeViewNode_CheckChanged")]
@@ -179,65 +182,9 @@ $FolderBrowserButton_Click = {
     $FolderBrowserDialog = New-Object FolderBrowserDialog
     if ($FolderBrowserDialog.ShowDialog() -eq "OK") {
         $FolderBrowserTextBox.Text = $FolderBrowserDialog.SelectedPath
-        $Config.TargetPath = $FolderBrowserDialog.SelectedPath
-        . Save-Config -config $Config
     }
 }
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target = "TokenFilterElementPanel_Click")]
-$TokenFilterElementPanel_Click = {
-    param(
-        [Object]$sdr,
-        [EventArgs]$e
-    )
-    $_TextBox = $this.Parent.Controls | Where-Object { $_.GetType() -eq [TextBox] }
-    if ($_TextBox.Enabled -eq $false) {
-        $_TextBox.Enabled = $true
-        $this.TextAlign = [ContentAlignment]::MiddleRight
-        $this.Padding = [Padding]::new(3, 1, 0, 3)
-        $this.Text = "$([Path]::GetDirectoryName($this.Tag))\"
-        $_TextBox.Text = [Path]::GetFileName($this.Tag)
-        $_TextBox.Visible = $true
-        $_TextBox.Focus()
-    }
-}
-
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target = "TokenFilterElementTextBox_KeyUp")]
-$TokenFilterElementTextBox_KeyUp = {
-    param(
-        [Object]$sdr,
-        [KeyEventArgs]$e
-    )
-    $_Label = $sdr.Parent.Controls | Where-Object { $_.GetType() -eq [Label] }
-    if (($e.KeyCode -eq [Keys]::Enter -or $e.KeyCode -eq [Keys]::Return) -and $sdr.Focused -and $sdr.ReadOnly -eq $false) {
-        if ($null -eq $sdr.Text -or $sdr.Text -eq $sdr.Tag) { $sdr.Text = $sdr.Tag }
-        else {
-            $filePattern = [Path]::GetFileName($sdr.Text).Replace("%", "*")
-            $directory = [Path]::GetDirectoryName($_Label.Text)
-            $expectedPattern = "$($directory)\$filePattern"
-
-            $isFilterInvalid = (
-                -not ($filePattern -and ($filePattern -notmatch "[/\\]")) -or
-                -not ($filePattern.IndexOfAny([Path]::GetInvalidPathChars()) -eq -1)
-            )
-
-            if ($isFilterInvalid) {
-                $_Label.Text = $_Label.Tag
-            }
-            else {
-                $_Label.Tag = $expectedPattern
-                $_Label.Text = $_Label.Tag
-                $_Label.Parent.Filter = $filePattern
-            }
-        }
-        $sdr.Text = ""
-        $sdr.Visible = $false
-        $_Label.Padding = [Padding]::new(3, 3, 3, 3)
-        $_Label.TextAlign = [ContentAlignment]::MiddleCenter
-        $sdr.Enabled = $false
-
-    }
-}
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Target = "ExcludeLabel_Click")]
 $ExcludeLabel_Click = {
@@ -259,7 +206,7 @@ $SubmitButton_Click = {
 
 function Format-Filter([Object[]]$Filter) {
     if ($null -eq $Filter -or $Filter.Count -eq 0) { return $null }
-    return ($Filter | ForEach-Object { $_ -replace '\\', '\\\\' }) -join ","
+    return ($Filter | ForEach-Object { "$_" }) -join ","
 }
 
 function Get-FilterCommandArgs {
@@ -295,12 +242,12 @@ function Get-FilterCommandArgs {
 function Invoke-Command {
     param([Object[]]$Filters)
 
-    $Script = $(Get-ChildItem -Path $PSScriptRoot -Recurse | Where-Object { $_.Name -eq "PSCreateSymlinks.ps1" }).FullName
+    $Script = $(Get-ChildItem -Path $PSScriptRoot -Recurse | Where-Object { $_.Name -eq "symlinks.ps1" }).FullName
     $_Args = Get-FilterCommandArgs
 
     $Arguments = @(
-        "-SourcePath", "`"$SourcePath`"",
-        "-TargetPath", "`"$($FolderBrowserTextBox.Text)`"",
+        "-SourceDir", "`"$BaseAssetsPath`"",
+        "-TargetDir", "`"$($FolderBrowserTextBox.Text)`"",
         "-CreateFolder",
         "-Files", $_Args.Files
     )
@@ -311,10 +258,23 @@ function Invoke-Command {
 
     $result = [System.Windows.Forms.MessageBox]::Show("Spawn Symlinks?", "Confirmation", "YesNo", "Question")
     if ($result -eq "Yes") {
-        . PowerShell $Script @Arguments *>&1 | Write-Host -ForegroundColor White
+        & PowerShell $Script @Arguments *>&1 | Write-Host -ForegroundColor White
     }
 }
 
-. (Join-Path $PSScriptRoot 'PSSymlinkSpawner.designer.ps1') | Out-Null
 
+Add-Type -AssemblyName System.Windows.Forms
+. (Join-Path $PSScriptRoot 'symlinks.ui.designer.ps1')
 $Form.ShowDialog() | Out-Null
+
+
+<#TODOS:
+    - Improve node filter tokenization:
+        - Auto check for treenodes when the filter regards a subfolder,  instead of rejecting the filter.
+        - Highlight Filter and Exclude tokens in the UI with distinct colors
+        - Implement "global" filter tokens and remove Exclude textbox from the UI
+        - Improve token resposiveness (enter, click out of the field, etc)
+        - Use MaskedTextBox for the filter token.
+    - Add a "DryRun" checkbox
+    - Add a "Change Source Directory" button
+#>
