@@ -97,7 +97,7 @@ class TokenFilterElementPanel : TableLayoutPanel {
         $_Label.BorderStyle = [BorderStyle]::None
         # $_Label.FlatStyle = [FlatStyle]::Flat
         $_Label.Cursor = [Cursors]::Hand
-        $_Label.Padding = [Padding]::new(3, 3, 3, 3)
+        $_Label.Padding = [Padding]::new(0, 0, 0, 0)
         $_Label.FlatStyle = [FlatStyle]::System
         $this.Set_MouseEvents($_Label)
         $_Label.add_Click($global:TokenFilterElementPanel_Click)
@@ -115,7 +115,7 @@ class TokenFilterElementPanel : TableLayoutPanel {
         $_TextBox.WordWrap = $false
         $_TextBox.BackColor = $this.BackColor
         $_TextBox.ForeColor = $this.ForeColor
-        $_TextBox.Anchor = ([AnchorStyles]::Left -bor [AnchorStyles]::Right)
+        $_TextBox.Anchor = ([AnchorStyles]::Left -bor [AnchorStyles]::Right -bor [AnchorStyles]::Top)
         $_TextBox.BorderStyle = [BorderStyle]::None
         $_TextBox.Font = (New-Object -TypeName Font -ArgumentList @([System.String]'Fira Code Retina', [System.Single]8.25, [System.Drawing.FontStyle]::Bold))
         $_TextBox.Name = [System.String]"TokenFilterTextBox_$($this.Text)"
@@ -149,9 +149,9 @@ class TokenFilterElementPanel : TableLayoutPanel {
                 $sdr.ForeColor = [Color]::LightGray
                 foreach ($control in $sdr.Controls) {
                     try {
-                        $sdr._ToolTip.SetToolTip($this, [String]$this.Text)
-                        $control.BackColor = $backColor
-                        $control.ForeColor = $foreColor
+                        $toolTip.SetToolTip($this, [String]$this.Text)
+                        $control.BackColor = $sdr.BackColor
+                        $control.ForeColor = $sdr.ForeColor
                     }
                     catch {
                         Write-Debug $_.Exception.Message
@@ -159,24 +159,24 @@ class TokenFilterElementPanel : TableLayoutPanel {
                 }
             })
         $parentControl.add_MouseLeave( {
-                param([Object]$sdr, [EventArgs]$e)
+            param([Object]$sdr, [EventArgs]$e)
 
-                if ($sdr.GetType() -ne [TokenFilterElementPanel]) {
-                    $sdr = $sdr.Parent
-                }
+            if ($sdr.GetType() -ne [TokenFilterElementPanel]) {
+                $sdr = $sdr.Parent
+            }
 
-                $sdr.BackColor = [Color]::LightGray
-                $sdr.ForeColor = [Color]::Black
-                foreach ($control in $sdr.Controls) {
-                    try {
-                        $control.BackColor = $backColor
-                        $control.ForeColor = $foreColor
-                    }
-                    catch {
-                        Write-Debug $_.Exception.Message
-                    }
+            $sdr.BackColor = [Color]::LightGray
+            $sdr.ForeColor = [Color]::Black
+            foreach ($control in $sdr.Controls) {
+                try {
+                    $control.BackColor = $sdr.BackColor
+                    $control.ForeColor = $sdr.ForeColor
                 }
-            })
+                catch {
+                    Write-Debug $_.Exception.Message
+                }
+            }
+        })
     }
 
     [Region]GetRoundedRectangleRegion([int]$radius = 30) {
@@ -615,3 +615,339 @@ function InitializeComponents {
     . InitializeConfig
 }
 . InitializeComponents
+
+# class BetterTextBox : UserControl {
+#     [TextBox]$TextB
+#     [String]$Text
+#     [Bool]$ReadOnly
+#     [ContentAlignment]$TextAlign
+#     [String]$Tag
+#     [Color]$BackColor
+#     [Color]$ForeColor
+#     [Font]$Font
+#     [BorderStyle]$BorderStyle
+#     [bool]$WordWrap
+#     [bool]$MultiLine
+#     [Cursor]$Cursor
+
+
+#     BetterTextBox() {
+#         $this.Init()
+#     }
+
+#     [void]Init() {
+#         $this.BorderStyle = [BorderStyle]::FixedSingle
+#         $this.BackColor = [SystemColors]::Window
+#         $this.TextB = New-Object TextBox
+#         $this.TextB.BorderStyle = [BorderStyle]::None
+#         $this.Controls.Add($this.TextB)
+#         $this.AutoSize = $true
+#         $this.TextB.AutoSize = $false
+#         $this.TextB.TextAlign = [HorizontalAlignment]::Center
+#         $this.Add_click({
+#             param([Object]$sdr, [EventArgs]$e)
+#             Write-Host "Clicked on BetterTextBox UserControl"
+#         })
+#         $this.Add_Resize({
+#             param([Object]$sdr, [EventArgs]$e)
+#             $sdr.TextB.Left = 0
+#             $sdr.TextB.Top = ($sdr.Height - $sdr.TextB.Height) / 2
+#         })
+#         $this.Add_Click(
+#             {
+#                 param(
+#                     [Object]$sdr,
+#                     [EventArgs]$e
+#                 )
+#                 if ($sdr.ReadOnly) {
+#                     $sdr.ReadOnly = $false
+#                 }
+#             })
+#         $this.Add_MouseUp({
+#                 param ($sdr, $e)
+#                 if ($sdr.TextB.SelectionStart -lt $sdr.TextB.Tag.Length) {
+#                     $sdr.TextB.SelectionStart = $sdr.TextB.Tag.Length
+#                     $sdr.TextB.SelectionLength = 0
+#                 }
+#             })
+
+#             $this.add_MouseEnter({
+#                 param([Object]$sdr, [EventArgs]$e)
+#                 $toolTip = [ToolTip]::new()
+#                 $toolTip.SetToolTip($sdr, [String]$sdr.TextB.Text)
+#                 $sdr.BackColor = [Color]::Black
+#                 $sdr.ForeColor = [Color]::LightGray
+#                 $sdr.TextB.BackColor = [Color]::Black
+#                 $sdr.TextB.ForeColor = [Color]::LightGray
+#             })
+
+#             $this.add_MouseLeave({
+#                 param([Object]$sdr, [EventArgs]$e)
+#                 $sdr.BackColor = [Color]::LightGray
+#                 $sdr.ForeColor = [Color]::Black
+#                 $sdr.TextB.BackColor = [Color]::LightGray
+#                 $sdr.TextB.ForeColor = [Color]::Black
+#             })
+
+#         }
+
+
+#     [string]get_Text() {
+#         return $this.TextB.Text
+#     }
+#     [void]set_Text([string]$value) {
+#         $this.TextB.Text = $value
+#     }
+
+#     [ContentAlignment]get_TextAlign() {
+#         return $this.TextB.TextAlign
+#     }
+
+#     [string]get_Tag() {
+#         return $this.TextB.Tag
+#     }
+#     [void]set_Tag([string]$value) {
+#         $this.TextB.Tag = $value
+#     }
+
+#     [bool]get_ReadOnly() {
+#         return $this.TextB.ReadOnly
+#     }
+#     [void]set_ReadOnly([bool]$value) {
+#         $this.TextB.ReadOnly = $value
+#     }
+
+#     [bool]get_WordWrap() {
+#         return $this.TextB.WordWrap
+#     }
+#     [void]set_WordWrap([bool]$value) {
+#         $this.TextB.WordWrap = $value
+#     }
+
+#     [bool]get_MultiLine() {
+#         return $this.TextB.MultiLine
+#     }
+#     [void]set_MultiLine([bool]$value) {
+#         $this.TextB.MultiLine = $value
+#     }
+
+#     [Cursor]get_Cursor() {
+#         return $this.TextB.Cursor
+#     }
+#     [void]set_Cursor([Cursor]$value) {
+#         $this.TextB.Cursor = $value
+#     }
+
+#     [Color]get_PropertyBackColor() {
+#         return $this.TextB.BackColor
+#     }
+#     [void]set_PropertyBackColor([Color]$value) {
+#         $this.TextB.BackColor = $value
+#     }
+
+#     [Color]get_ForeColor() {
+#         return $this.TextB.ForeColor
+#     }
+#     [void]set_ForeColor([Color]$value) {
+#         $this.TextB.ForeColor = $value
+#     }
+
+#     [Font]get_PropertyFont() {
+#         return $this.TextB.Font
+#     }
+#     [void]set_PropertyFont([Font]$value) {
+#         $this.TextB.Font = $value
+#     }
+
+#     [void]add_TextChanged([scriptblock]$value) {
+#         $this.TextB.add_TextChanged($value)
+#     }
+
+#     [void]add_ReadOnlyChanged([scriptblock]$value) {
+#         $this.TextB.add_ReadOnlyChanged($value)
+#     }
+
+#     [void]add_Click([scriptblock]$value) {
+#         $this.TextB.add_Click($value)
+#     }
+
+#     [void]Add_KeyUp([scriptblock]$value) {
+#         $this.TextB.Add_KeyUp($value)
+#     }
+
+#     [void]Add_KeyDown([scriptblock]$value) {
+#         $this.TextB.Add_KeyDown($value)
+#     }
+
+#     [void]Add_MouseUp([scriptblock]$value) {
+#         $this.TextB.Add_MouseUp($value)
+#     }
+
+#     [void]Add_GotFocus([scriptblock]$value) {
+#         $this.TextB.Add_GotFocus($value)
+#     }
+# }
+
+# class TokenFilterElement : Panel {
+
+#     [String]$Directory = [Path]::GetFullPath($Node.Tag)
+#     [String]$Filter = ""
+#     [Bool]$IsExclude = $false
+
+#     [String]GetFilter() {
+#         return "$($this.Directory)\$($this.Filter)"
+#     }
+
+#     TokenFilterElement([TreeNode]$Node) {
+#         $this.Init($Node)
+#     }
+
+#     [void]Init([TreeNode]$Node) {
+
+#         $this.Name = [String]$Node.Tag
+#         $this.AutoSize = $true
+#         $this.Tag = [System.String]"$(Format-NodePathTag -Tag $Node.Tag)\"
+#         $this.BackColor = [System.Drawing.Color]::LightGray
+#         $this.ForeColor = [System.Drawing.Color]::Black
+#         $this.Add_click({
+#             param([Object]$sdr, [EventArgs]$e)
+#             Write-Host "Clicked on panel $sdr.Tag"
+#         })
+#         $this.SetControls()
+#     }
+
+#     [void]SetControls() {
+#         $textBox =  New-Object BetterTextBox
+#         $textBox.Tag = $this.Tag
+#         $textBox.Text = "$($this.Tag)\*"
+#         $textBox.Cursor = [Cursors]::Hand
+#         $textBox.ReadOnly = $true
+#         $textBox.BackColor = $this.BackColor
+#         $textBox.ForeColor =  $this.ForeColor
+#         $this.Controls.Add($textBox)
+#         $textBox.Add_ReadOnlyChanged({
+#                 param ($sdr, $e)
+#                 if ($sdr.ReadOnly) {
+#                     $sdr.Cursor = [Cursors]::Default
+#                     $sdr.Focus()
+#                 }
+#                 else {
+#                     $sdr.Cursor = [Cursors]::Hand
+#                 }
+#             })
+#         $textBox.Add_Click(
+#             {
+#                 param(
+#                     [Object]$sdr,
+#                     [EventArgs]$e
+#                 )
+#                 if ($sdr.ReadOnly) {
+#                     $sdr.ReadOnly = $false
+#                 }
+#             })
+#         # Handle input restrictions
+#         $textBox.Add_KeyUp({
+#                 param(
+#                     [Object]$sdr,
+#                     [KeyEventArgs]$e
+#                 )
+#                 if (($e.KeyCode -eq [Keys]::Enter -or $e.KeyCode -eq [Keys]::Return) -and $sdr.Focused) {
+#                     if ($null -eq $sdr.Text -or $sdr.Text -eq $sdr.Tag) { $sdr.Text = $sdr.Tag }
+#                     else {
+#                         $filePattern = [Path]::GetFileName($sdr.Text).Replace("%", "*")
+#                         $directory = [Path]::GetDirectoryName($sdr.Tag)
+#                         $expectedPattern = "$($directory)\$filePattern"
+
+#                         $isFilterInvalid = (
+#                             -not ($filePattern -and ($filePattern -notmatch "[/\\]")) -or
+#                             -not ($filePattern.IndexOfAny([Path]::GetInvalidPathChars()) -eq -1)
+#                         )
+
+#                         if ($isFilterInvalid) {
+#                             $sdr.Text = $sdr.Tag
+#                         }
+#                         else {
+#                             $sdr.Tag = $expectedPattern
+#                             $sdr.Text = $sdr.Tag
+#                             $sdr.Parent.Filter = $filePattern
+#                         }
+#                     }
+#                     $sdr.ReadOnly = $True
+#                 }
+#             }
+#         )
+#         $textBox.Add_KeyDown({
+#                 param ($sdr, $e)
+#                 if ($sdr.SelectionStart -le $sdr.Tag.Length) {
+#                     if ($e.KeyCode -eq "Delete" -and $sdr.SelectionStart -eq $sdr.Tag.Length) {
+#                         return
+#                     }
+#                     if ($e.KeyCode -eq "Back") {
+#                         $e.SuppressKeyPress = $true
+#                         return
+#                     }
+#                     if ($e.KeyCode -eq "Left" -or $e.KeyCode -eq "Home") {
+#                         $e.SuppressKeyPress = $true
+#                         $sdr.SelectionStart = $sdr.Tag.Length
+#                         return
+#                     }
+#                 }
+#             })
+#         $textBox.Add_MouseUp({
+#                 param ($sdr, $e)
+#                 if ($sdr.SelectionStart -lt $sdr.Tag.Length) {
+#                     $sdr.SelectionStart = $sdr.Tag.Length
+#                     $sdr.SelectionLength = 0
+#                 }
+#             })
+#         $textBox.Add_GotFocus({
+#                 param ($sdr, $e)
+#                 $sdr.SelectionStart = $sdr.Tag.Length
+#                 $sdr.SelectionLength = 0
+#             })
+#         }
+
+#     [void]Set_MouseHoverEvents([Control]$ctrl) {
+#         $ctrl.add_MouseEnter({
+#                 param([Object]$sdr, [EventArgs]$e)
+
+#                 if ($sdr.GetType() -ne [TokenFilterElement]) {
+#                     $sdr = $sdr.Parent
+#                 }
+#                 $toolTip = [ToolTip]::new()
+#                 $toolTip.SetToolTip($sdr, [String]$sdr.Text)
+
+#                 $sdr.BackColor = [Color]::Black
+#                 $sdr.ForeColor = [Color]::LightGray
+#                 foreach ($control in $sdr.Controls) {
+#                     try {
+#                         $sdr._ToolTip.SetToolTip($this, [String]$this.Text)
+#                         $control.BackColor = $backColor
+#                         $control.ForeColor = $foreColor
+#                     }
+#                     catch {
+#                         Write-Debug $_.Exception.Message
+#                     }
+#                 }
+#             })
+
+#         $ctrl.add_MouseLeave( {
+#                 param([Object]$sdr, [EventArgs]$e)
+
+#                 if ($sdr.GetType() -ne [TokenFilterElement]) {
+#                     $sdr = $sdr.Parent
+#                 }
+#                 $sdr.BackColor = [Color]::LightGray
+#                 $sdr.ForeColor = [Color]::Black
+#                 foreach ($control in $sdr.Controls) {
+#                     try {
+#                         $control.BackColor = $backColor
+#                         $control.ForeColor = $foreColor
+#                     }
+#                     catch {
+#                         Write-Debug $_.Exception.Message
+#                     }
+#                 }
+#             })
+#     }
+# }
