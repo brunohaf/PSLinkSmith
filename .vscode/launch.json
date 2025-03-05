@@ -1,0 +1,34 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PSSymlinkSpawner",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "./PSSymlinkSpawner.ps1",
+      "cwd": "${workspaceFolder}/src"
+      // "args": ["${workspaceFolder}/PSSymlinkSpawner.ps1"]
+    },
+    {
+      "name": "PSCreateSymlinks",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "./PSCreateSymlinks.ps1",
+      "cwd": "${workspaceFolder}/src",
+      "args": [
+        "-Debug",
+        "-SourcePath",
+        "C:\\Users\\bruno\\OneDrive\\RPG\\foundry\\Data\\.assets",
+        "-TargetPath",
+        "C:\\Users\\bruno\\Desktop\\test",
+        "-Files",
+        "C:\\Users\\bruno\\OneDrive\\RPG\\foundry\\Data\\.assets\\scenes\\Settlements\\",
+        "-CreateFolder",
+        // "-DryRun"
+      ]
+    }
+  ]
+}

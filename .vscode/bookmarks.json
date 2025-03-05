@@ -1,0 +1,14 @@
+{
+	"files": [
+		{
+			"path": "src/PSSymlinkSpawner.ps1",
+			"bookmarks": [
+				{
+					"line": 206,
+					"column": 0,
+					"label": "TokenFilterElement_KeyUp"
+				}
+			]
+		}
+	]
+}
