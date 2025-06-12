@@ -1,11 +1,14 @@
-<h1 align="center">
+<h1 align="center" style="margin-bottom: 1rem;">
   <br>
-<div style="width:312px; height:312px; border-radius:50%; overflow:hidden; border:4px solid #333; margin: 0 auto; display:flex; align-items:center; justify-content:center;">
-  <img src="https://placedog.net/512" alt="Round Image" style="width:100%; height:100%; object-fit:cover;">
-</div>
+  <img 
+    src="https://placedog.net/800/400?id=134" 
+    alt="PSLinkSmith Logo" 
+    style="border-radius: 20px; border: 4px solid #333; object-fit: cover;">
+  <br>
   PSLinkSmith
   <br>
 </h1>
+
 
 <h4 align="center">A bare-bones symlink farm manager for Windows built with <a href="https://learn.microsoft.com/en-us/dotnet/desktop/winforms/overview/?view=netframeworkdesktop-4.8" target="_blank">Windows Forms (.NET Framework)</a> and PowerShell.</h4>
 
@@ -24,9 +27,11 @@
   <a href="#license">License</a>
 </p>
 
+<!--
 <div align="center">
   <img src="https://placedog.net/800x300" alt="Image">
 </div>
+-->
 
 ## 📂 About
 
