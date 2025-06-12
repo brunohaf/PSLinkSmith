@@ -218,7 +218,7 @@ function InitializeConfig {
     $ConfigFilePath = $(Get-ChildItem -Path "$Path" -Recurse -File | Where-Object { $_.Name -like "*.config" }).FullName
 
     if (-not $ConfigFilePath) {
-        $ConfigFilePath = "$Path/Config/PSSymlinkSpawner.config"
+        $ConfigFilePath = "$Path/Config/PSLinkSmith.config"
     }
 
     $configFileDir = Split-Path -Parent $ConfigFilePath
