@@ -13,7 +13,7 @@
 # Function to display the help message
 function Show-Help {
     Write-Log @"
-Usage: .\Invoke-PSSymlinkSpawner -TargetPath "C:\Path\To\Target" [-Files "file1", "file2"] [-Help]
+Usage: .\Invoke-PSLinkSmith -TargetPath "C:\Path\To\Target" [-Files "file1", "file2"] [-Help]
 
 Creates symbolic links in the target directory for files and folders from the current directory.
 
@@ -24,13 +24,13 @@ PARAMETERS:
 
 EXAMPLES:
   1. Symlink everything in the current directory:
-     .\Invoke-PSSymlinkSpawner -TargetPath "C:\Links"
+     .\Invoke-PSLinkSmith -TargetPath "C:\Links"
 
   2. Symlink only specific files:
-     .\Invoke-PSSymlinkSpawner -TargetPath "C:\Links" -Files "example.txt", "folder1"
+     .\Invoke-PSLinkSmith -TargetPath "C:\Links" -Files "example.txt", "folder1"
 
   3. Symlink all .txt files:
-     .\Invoke-PSSymlinkSpawner -TargetPath "C:\Links" -Files "*.txt"
+     .\Invoke-PSLinkSmith -TargetPath "C:\Links" -Files "*.txt"
 
   NOTE: This script requires administrator privileges or Developer Mode enabled.
 "@ -ForegroundColor Cyan
