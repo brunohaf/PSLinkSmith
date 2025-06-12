@@ -315,6 +315,6 @@ function Invoke-Command {
     }
 }
 
-. (Join-Path $PSScriptRoot 'PSSymlinkSpawner.designer.ps1') | Out-Null
+. (Join-Path $PSScriptRoot 'PSLinkSmiith.designer.ps1') | Out-Null
 
 $Form.ShowDialog() | Out-Null
